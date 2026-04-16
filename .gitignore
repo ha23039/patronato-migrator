@@ -1,0 +1,35 @@
+# Documentación interna y herramientas de desarrollo — no versionar
+CLAUDE.md
+.claude/
+docs/
+
+# Dependencias PHP
+/vendor/
+composer.lock
+
+# Build / assets generados
+/node_modules/
+/dist/
+/build/
+
+# Configuración local y secretos
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporales del propio plugin (cuando exista)
+patronato-migrator/migrations/exports/
