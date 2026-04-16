@@ -59,9 +59,9 @@ $pm_modules = array(
 	array(
 		'module'         => 'customers',
 		'label'          => __( 'Usuarios', 'patronato-migrator' ),
-		'description'    => __( '92,595 usuarios activos', 'patronato-migrator' ),
-		'enabled'        => false,
-		'pending_sprint' => __( 'Sprint 5', 'patronato-migrator' ),
+		'description'    => __( '92,595 usuarios activos en lotes de 200', 'patronato-migrator' ),
+		'enabled'        => true,
+		'pending_sprint' => null,
 	),
 	array(
 		'module'         => 'orders',

@@ -14,6 +14,7 @@ use PatronatoMigrator\Database\JoomlaConnector;
 use PatronatoMigrator\Database\MigrationRepository;
 use PatronatoMigrator\Migrators\AbstractMigrator;
 use PatronatoMigrator\Migrators\CategoryMigrator;
+use PatronatoMigrator\Migrators\CustomerMigrator;
 use PatronatoMigrator\Migrators\ImageMigrator;
 use PatronatoMigrator\Migrators\ProductMigrator;
 use Throwable;
@@ -170,6 +171,8 @@ final class AjaxHandler
                 return new ProductMigrator($connector, $repository);
             case 'images':
                 return new ImageMigrator($connector, $repository);
+            case 'customers':
+                return new CustomerMigrator($connector, $repository);
         }
 
         throw new \RuntimeException(
