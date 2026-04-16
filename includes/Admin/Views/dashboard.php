@@ -52,9 +52,9 @@ $pm_modules = array(
 	array(
 		'module'         => 'images',
 		'label'          => __( 'Imagenes', 'patronato-migrator' ),
-		'description'    => __( 'Imagenes principales y galeria', 'patronato-migrator' ),
-		'enabled'        => false,
-		'pending_sprint' => __( 'Sprint 4', 'patronato-migrator' ),
+		'description'    => __( 'Imagenes principales y galeria, lotes de 50', 'patronato-migrator' ),
+		'enabled'        => true,
+		'pending_sprint' => null,
 	),
 	array(
 		'module'         => 'customers',
