@@ -1,0 +1,261 @@
+/*
+ * Patronato Migrator - Estilos del panel de administracion.
+ *
+ * Solo variables CSS del plugin. Sin frameworks externos.
+ */
+
+:root {
+	--pm-color-primary:    #1A2B4A;
+	--pm-color-accent:     #2563EB;
+	--pm-color-success:    #16A34A;
+	--pm-color-warning:    #D97706;
+	--pm-color-danger:     #DC2626;
+	--pm-color-bg:         #F3F4F6;
+	--pm-color-surface:    #FFFFFF;
+	--pm-color-border:     #E5E7EB;
+	--pm-color-text:       #1F2937;
+	--pm-color-text-muted: #6B7280;
+	--pm-radius:           6px;
+	--pm-shadow:           0 1px 3px rgba(0, 0, 0, 0.10);
+	--pm-font-mono:        "Courier New", monospace;
+}
+
+/* -------------------------------------------------------------------------
+ * Layout general
+ * ------------------------------------------------------------------------- */
+
+.wrap.pm-wrap {
+	max-width: 1100px;
+	margin: 20px 20px 40px 0;
+	color: var(--pm-color-text);
+}
+
+.wrap.pm-wrap h1 {
+	color: var(--pm-color-primary);
+	font-weight: 600;
+	margin-bottom: 16px;
+}
+
+.pm-card {
+	background-color: var(--pm-color-surface);
+	border: 1px solid var(--pm-color-border);
+	border-radius: var(--pm-radius);
+	box-shadow: var(--pm-shadow);
+	padding: 24px;
+	margin-top: 16px;
+}
+
+.pm-lead {
+	color: var(--pm-color-text-muted);
+	margin: 0 0 20px;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+/* -------------------------------------------------------------------------
+ * Notices
+ * ------------------------------------------------------------------------- */
+
+.pm-notice {
+	background-color: var(--pm-color-surface);
+	border: 1px solid var(--pm-color-border);
+	border-left-width: 4px;
+	border-radius: var(--pm-radius);
+	padding: 12px 16px;
+	margin: 12px 0 16px;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.pm-notice-success {
+	border-left-color: var(--pm-color-success);
+	color: var(--pm-color-text);
+}
+
+.pm-notice-error {
+	border-left-color: var(--pm-color-danger);
+	color: var(--pm-color-text);
+}
+
+.pm-notice-warning {
+	border-left-color: var(--pm-color-warning);
+	color: var(--pm-color-text);
+}
+
+/* -------------------------------------------------------------------------
+ * Formulario
+ * ------------------------------------------------------------------------- */
+
+.pm-form {
+	display: block;
+}
+
+.pm-form-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 18px 24px;
+}
+
+@media (min-width: 768px) {
+	.pm-form-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.pm-field-wide {
+		grid-column: 1 / -1;
+	}
+}
+
+.pm-field {
+	display: flex;
+	flex-direction: column;
+}
+
+.pm-field label {
+	font-weight: 600;
+	font-size: 13px;
+	color: var(--pm-color-text);
+	margin-bottom: 6px;
+}
+
+.pm-required {
+	color: var(--pm-color-danger);
+	margin-left: 2px;
+}
+
+.pm-field input[type="text"],
+.pm-field input[type="number"],
+.pm-field input[type="password"],
+.pm-field input[type="email"] {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 8px 10px;
+	font-size: 14px;
+	line-height: 1.4;
+	color: var(--pm-color-text);
+	background-color: var(--pm-color-surface);
+	border: 1px solid var(--pm-color-border);
+	border-radius: var(--pm-radius);
+	box-shadow: none;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pm-field input[type="text"]:focus,
+.pm-field input[type="number"]:focus,
+.pm-field input[type="password"]:focus,
+.pm-field input[type="email"]:focus {
+	border-color: var(--pm-color-accent);
+	box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+	outline: none;
+}
+
+.pm-help {
+	margin: 6px 0 0;
+	font-size: 12px;
+	color: var(--pm-color-text-muted);
+	line-height: 1.4;
+}
+
+.pm-form-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 24px;
+	padding-top: 20px;
+	border-top: 1px solid var(--pm-color-border);
+}
+
+/* -------------------------------------------------------------------------
+ * Botones
+ * ------------------------------------------------------------------------- */
+
+.pm-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 36px;
+	padding: 0 16px;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1;
+	border-radius: var(--pm-radius);
+	border: 1px solid transparent;
+	cursor: pointer;
+	text-decoration: none;
+	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pm-btn:focus {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+}
+
+.pm-btn:disabled,
+.pm-btn[aria-disabled="true"] {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.pm-btn-primary {
+	background-color: var(--pm-color-primary);
+	border-color: var(--pm-color-primary);
+	color: var(--pm-color-surface);
+}
+
+.pm-btn-primary:hover:not(:disabled),
+.pm-btn-primary:focus:not(:disabled) {
+	background-color: var(--pm-color-accent);
+	border-color: var(--pm-color-accent);
+	color: var(--pm-color-surface);
+}
+
+.pm-btn-secondary {
+	background-color: var(--pm-color-surface);
+	border-color: var(--pm-color-border);
+	color: var(--pm-color-text);
+}
+
+.pm-btn-secondary:hover:not(:disabled),
+.pm-btn-secondary:focus:not(:disabled) {
+	border-color: var(--pm-color-accent);
+	color: var(--pm-color-accent);
+}
+
+/* -------------------------------------------------------------------------
+ * Resultado de prueba de conexion
+ * ------------------------------------------------------------------------- */
+
+.pm-test-result {
+	margin-top: 16px;
+	min-height: 1px;
+}
+
+.pm-test-result:empty {
+	display: none;
+}
+
+.pm-result-loading,
+.pm-result-success,
+.pm-result-error {
+	display: block;
+	padding: 10px 14px;
+	border-radius: var(--pm-radius);
+	border: 1px solid var(--pm-color-border);
+	font-size: 13px;
+	line-height: 1.4;
+	font-family: var(--pm-font-mono);
+	background-color: var(--pm-color-bg);
+	color: var(--pm-color-text);
+}
+
+.pm-result-loading {
+	border-left: 4px solid var(--pm-color-accent);
+}
+
+.pm-result-success {
+	border-left: 4px solid var(--pm-color-success);
+}
+
+.pm-result-error {
+	border-left: 4px solid var(--pm-color-danger);
+}

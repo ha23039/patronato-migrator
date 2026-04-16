@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 namespace PatronatoMigrator\Core;
 
+use PatronatoMigrator\Admin\AdminMenu;
+use PatronatoMigrator\Admin\AjaxHandler;
+
 defined('ABSPATH') || exit;
 
 /**
@@ -110,16 +113,17 @@ final class Plugin
     }
 
     /**
-     * Registra los hooks que pertenecen al bootstrap del plugin.
-     *
-     * Los hooks especificos del panel admin, los AJAX y los migrators
-     * se registraran desde sus propios componentes en sprints posteriores.
+     * Registra los hooks que pertenecen al bootstrap del plugin y delega
+     * en cada componente la inscripcion de sus propios hooks (admin, AJAX, etc.).
      *
      * @return void
      */
     private function registerHooks(): void
     {
         $this->loader->addAction('admin_enqueue_scripts', $this, 'enqueueAdminAssets', 10, 1);
+
+        (new AdminMenu())->register($this->loader);
+        (new AjaxHandler())->register($this->loader);
     }
 
     /**
