@@ -259,3 +259,210 @@
 .pm-result-error {
 	border-left: 4px solid var(--pm-color-danger);
 }
+
+/* -------------------------------------------------------------------------
+ * Dashboard: lista de modulos
+ * ------------------------------------------------------------------------- */
+
+.pm-modules-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.pm-module-card {
+	background-color: var(--pm-color-surface);
+	border: 1px solid var(--pm-color-border);
+	border-radius: var(--pm-radius);
+	box-shadow: var(--pm-shadow);
+	padding: 20px 24px;
+}
+
+.pm-module-card-header {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-bottom: 14px;
+}
+
+.pm-module-card-header h2 {
+	margin: 0;
+	padding: 0;
+	font-size: 16px;
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--pm-color-primary);
+}
+
+.pm-module-card-desc {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.4;
+	color: var(--pm-color-text-muted);
+}
+
+@media (min-width: 1024px) {
+	.pm-module-card-header {
+		flex-direction: row;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 16px;
+	}
+}
+
+/* -------------------------------------------------------------------------
+ * Barra de progreso
+ * ------------------------------------------------------------------------- */
+
+.pm-progress {
+	width: 100%;
+	height: 12px;
+	background-color: var(--pm-color-bg);
+	border: 1px solid var(--pm-color-border);
+	border-radius: var(--pm-radius);
+	overflow: hidden;
+}
+
+.pm-progress-bar {
+	height: 100%;
+	width: 0%;
+	background-color: var(--pm-color-accent);
+	transition: width 200ms ease, background-color 200ms ease;
+}
+
+.pm-progress-bar.pm-state-success {
+	background-color: var(--pm-color-success);
+}
+
+.pm-progress-bar.pm-state-error {
+	background-color: var(--pm-color-danger);
+}
+
+.pm-progress-text {
+	margin: 8px 0 0;
+	font-family: var(--pm-font-mono);
+	font-size: 12px;
+	color: var(--pm-color-text-muted);
+	line-height: 1.4;
+}
+
+/* -------------------------------------------------------------------------
+ * Acciones por modulo
+ * ------------------------------------------------------------------------- */
+
+.pm-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 14px;
+}
+
+/* -------------------------------------------------------------------------
+ * Log por modulo
+ * ------------------------------------------------------------------------- */
+
+.pm-module-log {
+	margin-top: 14px;
+	max-height: 200px;
+	overflow-y: auto;
+	background-color: var(--pm-color-bg);
+	border: 1px solid var(--pm-color-border);
+	border-radius: var(--pm-radius);
+	padding: 8px 12px;
+	font-family: var(--pm-font-mono);
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--pm-color-text);
+}
+
+.pm-module-log:empty {
+	display: none;
+}
+
+.pm-module-log .pm-log-entry {
+	padding: 4px 0;
+	border-bottom: 1px solid var(--pm-color-border);
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.pm-module-log .pm-log-entry:last-child {
+	border-bottom: none;
+}
+
+.pm-module-log .pm-log-entry.pm-status-success {
+	color: var(--pm-color-success);
+}
+
+.pm-module-log .pm-log-entry.pm-status-error {
+	color: var(--pm-color-danger);
+}
+
+.pm-module-log .pm-log-entry.pm-status-warning {
+	color: var(--pm-color-warning);
+}
+
+.pm-log-time {
+	color: var(--pm-color-text-muted);
+	margin-right: 8px;
+}
+
+/* -------------------------------------------------------------------------
+ * Badge de modulo pendiente
+ * ------------------------------------------------------------------------- */
+
+.pm-module-pending {
+	margin: 0;
+}
+
+.pm-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 3px 10px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	line-height: 1.4;
+}
+
+.pm-badge-pending {
+	background-color: var(--pm-color-bg);
+	color: var(--pm-color-text-muted);
+	border: 1px solid var(--pm-color-border);
+}
+
+/* -------------------------------------------------------------------------
+ * Footer del dashboard
+ * ------------------------------------------------------------------------- */
+
+.pm-dashboard-footer {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid var(--pm-color-border);
+	font-size: 13px;
+}
+
+.pm-footer-link {
+	color: var(--pm-color-accent);
+	text-decoration: none;
+}
+
+.pm-footer-link:hover,
+.pm-footer-link:focus {
+	text-decoration: underline;
+}
+
+.pm-footer-link-disabled,
+.pm-footer-link-disabled:hover,
+.pm-footer-link-disabled:focus {
+	color: var(--pm-color-text-muted);
+	text-decoration: none;
+	cursor: not-allowed;
+	pointer-events: none;
+}
