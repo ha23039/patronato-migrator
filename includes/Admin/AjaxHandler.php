@@ -11,6 +11,9 @@ namespace PatronatoMigrator\Admin;
 
 use PatronatoMigrator\Core\Loader;
 use PatronatoMigrator\Database\JoomlaConnector;
+use PatronatoMigrator\Database\MigrationRepository;
+use PatronatoMigrator\Migrators\AbstractMigrator;
+use PatronatoMigrator\Migrators\CategoryMigrator;
 use Throwable;
 
 defined('ABSPATH') || exit;
@@ -32,11 +35,26 @@ final class AjaxHandler
     private const REQUIRED_CAP = 'manage_options';
 
     /**
+     * Tamano de batch por defecto cuando el frontend no envia uno.
+     *
+     * @var array<string, int>
+     */
+    private const DEFAULT_BATCH_SIZES = [
+        'categories' => 316,
+        'products'   => 100,
+        'images'     => 50,
+        'customers'  => 200,
+        'orders'     => 50,
+        'redirects'  => 100,
+    ];
+
+    /**
      * Registra los hooks del componente en el Loader compartido.
      */
     public function register(Loader $loader): void
     {
         $loader->addAction('wp_ajax_pm_test_connection', $this, 'handleTestConnection', 10, 0);
+        $loader->addAction('wp_ajax_pm_run_batch', $this, 'handleRunBatch', 10, 0);
     }
 
     /**
@@ -91,6 +109,65 @@ final class AjaxHandler
 
         wp_send_json_error(
             ['message' => __('No se pudo conectar. Revisa host, puerto, base de datos y credenciales.', 'patronato-migrator')]
+        );
+    }
+
+    /**
+     * Endpoint pm_run_batch. Ejecuta un unico batch del modulo solicitado y
+     * devuelve el progreso para que el navegador decida si seguir iterando.
+     */
+    public function handleRunBatch(): void
+    {
+        check_ajax_referer(self::AJAX_NONCE_ACTION, 'nonce');
+
+        if (!current_user_can(self::REQUIRED_CAP)) {
+            wp_send_json_error(
+                ['message' => __('Acceso denegado.', 'patronato-migrator')],
+                403
+            );
+        }
+
+        $module    = sanitize_key((string) ($_POST['module'] ?? ''));
+        $batchSize = isset($_POST['batch_size']) ? absint($_POST['batch_size']) : 0;
+
+        if ($module === '' || !isset(self::DEFAULT_BATCH_SIZES[$module])) {
+            wp_send_json_error(
+                ['message' => __('Modulo desconocido.', 'patronato-migrator')],
+                400
+            );
+        }
+
+        if ($batchSize <= 0) {
+            $batchSize = self::DEFAULT_BATCH_SIZES[$module];
+        }
+
+        try {
+            $migrator = $this->buildMigrator($module);
+            $result   = $migrator->run($batchSize);
+        } catch (Throwable $e) {
+            wp_send_json_error(['message' => $e->getMessage()]);
+        }
+
+        wp_send_json_success($result);
+    }
+
+    /**
+     * Resuelve el migrador concreto para el modulo dado.
+     *
+     * @throws Throwable Si el modulo no esta soportado en este sprint.
+     */
+    private function buildMigrator(string $module): AbstractMigrator
+    {
+        $repository = new MigrationRepository();
+        $connector  = new JoomlaConnector();
+
+        switch ($module) {
+            case 'categories':
+                return new CategoryMigrator($connector, $repository);
+        }
+
+        throw new \RuntimeException(
+            sprintf('Modulo "%s" aun no esta implementado.', $module)
         );
     }
 }
