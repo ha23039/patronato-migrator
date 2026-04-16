@@ -45,9 +45,9 @@ $pm_modules = array(
 	array(
 		'module'         => 'products',
 		'label'          => __( 'Productos', 'patronato-migrator' ),
-		'description'    => __( '28,624 productos', 'patronato-migrator' ),
-		'enabled'        => false,
-		'pending_sprint' => __( 'Sprint 3', 'patronato-migrator' ),
+		'description'    => __( '28,624 productos en lotes de 100', 'patronato-migrator' ),
+		'enabled'        => true,
+		'pending_sprint' => null,
 	),
 	array(
 		'module'         => 'images',

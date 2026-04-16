@@ -14,6 +14,7 @@ use PatronatoMigrator\Database\JoomlaConnector;
 use PatronatoMigrator\Database\MigrationRepository;
 use PatronatoMigrator\Migrators\AbstractMigrator;
 use PatronatoMigrator\Migrators\CategoryMigrator;
+use PatronatoMigrator\Migrators\ProductMigrator;
 use Throwable;
 
 defined('ABSPATH') || exit;
@@ -164,6 +165,8 @@ final class AjaxHandler
         switch ($module) {
             case 'categories':
                 return new CategoryMigrator($connector, $repository);
+            case 'products':
+                return new ProductMigrator($connector, $repository);
         }
 
         throw new \RuntimeException(
