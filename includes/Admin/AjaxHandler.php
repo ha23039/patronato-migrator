@@ -18,6 +18,7 @@ use PatronatoMigrator\Migrators\CustomerMigrator;
 use PatronatoMigrator\Migrators\ImageMigrator;
 use PatronatoMigrator\Migrators\OrderMigrator;
 use PatronatoMigrator\Migrators\ProductMigrator;
+use PatronatoMigrator\Migrators\RedirectMigrator;
 use Throwable;
 
 defined('ABSPATH') || exit;
@@ -59,6 +60,7 @@ final class AjaxHandler
     {
         $loader->addAction('wp_ajax_pm_test_connection', $this, 'handleTestConnection', 10, 0);
         $loader->addAction('wp_ajax_pm_run_batch', $this, 'handleRunBatch', 10, 0);
+        $loader->addAction('wp_ajax_pm_log_fetch', $this, 'handleLogFetch', 10, 0);
     }
 
     /**
@@ -176,10 +178,69 @@ final class AjaxHandler
                 return new CustomerMigrator($connector, $repository);
             case 'orders':
                 return new OrderMigrator($connector, $repository);
+            case 'redirects':
+                return new RedirectMigrator($connector, $repository);
         }
 
         throw new \RuntimeException(
             sprintf('Modulo "%s" aun no esta implementado.', $module)
         );
+    }
+
+    /**
+     * Endpoint pm_log_fetch. Devuelve entradas de migration_log con filtros
+     * por modulo y status, paginadas.
+     */
+    public function handleLogFetch(): void
+    {
+        check_ajax_referer(self::AJAX_NONCE_ACTION, 'nonce');
+
+        if (!current_user_can(self::REQUIRED_CAP)) {
+            wp_send_json_error(
+                ['message' => __('Acceso denegado.', 'patronato-migrator')],
+                403
+            );
+        }
+
+        $module = sanitize_key((string) ($_POST['module'] ?? ''));
+        $status = sanitize_key((string) ($_POST['status'] ?? ''));
+        $limit  = isset($_POST['limit']) ? max(1, min(500, absint($_POST['limit']))) : 50;
+        $offset = isset($_POST['offset']) ? max(0, absint($_POST['offset'])) : 0;
+
+        $repository = new MigrationRepository();
+
+        $rows  = [];
+        $total = 0;
+
+        try {
+            if ($module === '') {
+                foreach (MigrationRepository::MODULES as $candidate) {
+                    $rows  = array_merge($rows, $repository->getByModule($candidate, $limit, $offset));
+                    $total += $repository->countByModule($candidate, $status);
+                }
+                // Mezcla cruda; el frontend ya pagina/filtrara visualmente. Limitar al ultimo limit.
+                usort($rows, static fn (array $a, array $b): int => (int) ($b['id'] ?? 0) <=> (int) ($a['id'] ?? 0));
+                $rows = array_slice($rows, 0, $limit);
+            } else {
+                $rows  = $repository->getByModule($module, $limit, $offset);
+                $total = $repository->countByModule($module, $status);
+
+                if ($status !== '') {
+                    $rows = array_values(array_filter(
+                        $rows,
+                        static fn (array $r): bool => ($r['status'] ?? '') === $status
+                    ));
+                }
+            }
+        } catch (Throwable $e) {
+            wp_send_json_error(['message' => $e->getMessage()]);
+        }
+
+        wp_send_json_success([
+            'rows'   => $rows,
+            'total'  => $total,
+            'limit'  => $limit,
+            'offset' => $offset,
+        ]);
     }
 }

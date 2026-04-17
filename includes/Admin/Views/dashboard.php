@@ -73,9 +73,9 @@ $pm_modules = array(
 	array(
 		'module'         => 'redirects',
 		'label'          => __( 'Redirects', 'patronato-migrator' ),
-		'description'    => __( 'Mapa de URLs legacy', 'patronato-migrator' ),
-		'enabled'        => false,
-		'pending_sprint' => __( 'Sprint 7', 'patronato-migrator' ),
+		'description'    => __( '.htaccess y SQL para plugin Redirection', 'patronato-migrator' ),
+		'enabled'        => true,
+		'pending_sprint' => null,
 	),
 );
 ?>
@@ -124,12 +124,7 @@ $pm_modules = array(
 		<a class="pm-footer-link" href="<?php echo esc_url( $pm_config_url ); ?>">
 			<?php esc_html_e( 'Configuracion', 'patronato-migrator' ); ?>
 		</a>
-		<a
-			class="pm-footer-link pm-footer-link-disabled"
-			href="#"
-			aria-disabled="true"
-			tabindex="-1"
-		>
+		<a class="pm-footer-link" href="<?php echo esc_url( admin_url( 'admin.php?page=patronato-migrator-log' ) ); ?>">
 			<?php esc_html_e( 'Ver log', 'patronato-migrator' ); ?>
 		</a>
 	</footer>

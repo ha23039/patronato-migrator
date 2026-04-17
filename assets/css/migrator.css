@@ -466,3 +466,201 @@
 	cursor: not-allowed;
 	pointer-events: none;
 }
+
+/* -------------------------------------------------------------------------
+ * Visor de log: descargas, filtros y tabla
+ * ------------------------------------------------------------------------- */
+
+.pm-card.pm-log-downloads,
+.pm-card.pm-log-filters,
+.pm-card.pm-log-results {
+	margin-top: 16px;
+}
+
+.pm-card.pm-log-downloads h2,
+.pm-card.pm-log-filters h2,
+.pm-card.pm-log-results h2 {
+	margin: 0 0 12px;
+	padding: 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--pm-color-primary);
+	line-height: 1.3;
+}
+
+.pm-card.pm-log-downloads .pm-download-subtitle {
+	margin: 18px 0 8px;
+	padding: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--pm-color-text);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.pm-download-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.pm-download-actions + .pm-help {
+	margin-top: 10px;
+}
+
+/* Filtros del log
+ * ----------------------------------------------------------------------- */
+
+.pm-log-filters .pm-filter-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: flex-end;
+}
+
+.pm-log-filters .pm-field {
+	flex: 1 1 200px;
+	min-width: 180px;
+}
+
+.pm-log-filters .pm-field select {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 8px 10px;
+	font-size: 14px;
+	line-height: 1.4;
+	color: var(--pm-color-text);
+	background-color: var(--pm-color-surface);
+	border: 1px solid var(--pm-color-border);
+	border-radius: var(--pm-radius);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pm-log-filters .pm-field select:focus {
+	border-color: var(--pm-color-accent);
+	box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+	outline: none;
+}
+
+.pm-log-filters .pm-filter-actions {
+	display: flex;
+	align-items: flex-end;
+}
+
+/* Tabla del log
+ * ----------------------------------------------------------------------- */
+
+.pm-log-table-wrap {
+	overflow-x: auto;
+	border: 1px solid var(--pm-color-border);
+	border-radius: var(--pm-radius);
+}
+
+.pm-log-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+	line-height: 1.4;
+	color: var(--pm-color-text);
+	background-color: var(--pm-color-surface);
+}
+
+.pm-log-table thead th {
+	text-align: left;
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--pm-color-text-muted);
+	background-color: var(--pm-color-bg);
+	border-bottom: 1px solid var(--pm-color-border);
+	padding: 10px 12px;
+	white-space: nowrap;
+}
+
+.pm-log-table tbody td {
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--pm-color-border);
+	vertical-align: top;
+}
+
+.pm-log-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.pm-log-table tbody tr:nth-child(even) td {
+	background-color: var(--pm-color-bg);
+}
+
+.pm-log-table .pm-cell-id,
+.pm-log-table .pm-cell-joomla,
+.pm-log-table .pm-cell-wp {
+	font-family: var(--pm-font-mono);
+	white-space: nowrap;
+	color: var(--pm-color-text-muted);
+}
+
+.pm-log-table .pm-cell-date {
+	font-family: var(--pm-font-mono);
+	white-space: nowrap;
+	color: var(--pm-color-text-muted);
+}
+
+.pm-log-table .pm-cell-status {
+	font-weight: 600;
+	text-transform: uppercase;
+	font-size: 11px;
+	letter-spacing: 0.04em;
+	white-space: nowrap;
+}
+
+.pm-log-table .pm-cell-message {
+	font-family: var(--pm-font-mono);
+	max-width: 480px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pm-log-table .pm-row-status-success td.pm-cell-status {
+	color: var(--pm-color-success);
+}
+
+.pm-log-table .pm-row-status-error td.pm-cell-status {
+	color: var(--pm-color-danger);
+}
+
+.pm-log-table .pm-row-status-warning td.pm-cell-status {
+	color: var(--pm-color-warning);
+}
+
+.pm-log-table .pm-row-status-skipped td.pm-cell-status {
+	color: var(--pm-color-text-muted);
+}
+
+.pm-log-table .pm-row-empty td {
+	text-align: center;
+	color: var(--pm-color-text-muted);
+	padding: 18px 12px;
+	font-style: italic;
+}
+
+.pm-log-table-footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 4px 0;
+}
+
+.pm-log-status-text {
+	margin: 0;
+	font-size: 13px;
+	color: var(--pm-color-text-muted);
+	line-height: 1.4;
+}
+
+.pm-log-status-text.pm-status-error {
+	color: var(--pm-color-danger);
+}

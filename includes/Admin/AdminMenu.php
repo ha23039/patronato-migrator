@@ -11,7 +11,9 @@ declare(strict_types=1);
 namespace PatronatoMigrator\Admin;
 
 use PatronatoMigrator\Core\Loader;
+use PatronatoMigrator\Database\MigrationRepository;
 use PatronatoMigrator\Helpers\Encryptor;
+use PatronatoMigrator\Migrators\RedirectMigrator;
 use Throwable;
 
 defined('ABSPATH') || exit;
@@ -31,6 +33,11 @@ final class AdminMenu
      * Slug del submenu de configuracion.
      */
     public const SLUG_CONFIG = 'patronato-migrator-config';
+
+    /**
+     * Slug del submenu de log.
+     */
+    public const SLUG_LOG = 'patronato-migrator-log';
 
     /**
      * Opcion donde se almacenan las credenciales cifradas.
@@ -64,6 +71,8 @@ final class AdminMenu
     {
         $loader->addAction('admin_menu', $this, 'registerMenu', 10, 0);
         $loader->addAction('admin_post_' . self::SAVE_POST_ACTION, $this, 'handleSaveConfig', 10, 0);
+        $loader->addAction('admin_post_pm_export_log', $this, 'handleExportLog', 10, 0);
+        $loader->addAction('admin_post_pm_download_redirect', $this, 'handleDownloadRedirect', 10, 0);
     }
 
     /**
@@ -89,6 +98,15 @@ final class AdminMenu
             self::SLUG_CONFIG,
             [$this, 'renderConfig']
         );
+
+        add_submenu_page(
+            self::SLUG_DASHBOARD,
+            __('Log', 'patronato-migrator'),
+            __('Log', 'patronato-migrator'),
+            self::REQUIRED_CAP,
+            self::SLUG_LOG,
+            [$this, 'renderLog']
+        );
     }
 
     /**
@@ -101,6 +119,26 @@ final class AdminMenu
         }
 
         require PATRONATO_MIGRATOR_INCLUDES_PATH . 'Admin/Views/dashboard.php';
+    }
+
+    /**
+     * Renderiza la vista del log de migracion.
+     */
+    public function renderLog(): void
+    {
+        if (!current_user_can(self::REQUIRED_CAP)) {
+            wp_die(esc_html__('Acceso denegado.', 'patronato-migrator'), '', ['response' => 403]);
+        }
+
+        $modules         = MigrationRepository::MODULES;
+        $statuses        = MigrationRepository::STATUSES;
+        $export_url_base = admin_url('admin-post.php');
+        $download_urls   = (new RedirectMigrator(
+            new \PatronatoMigrator\Database\JoomlaConnector(),
+            new MigrationRepository()
+        ))->getDownloadUrls();
+
+        require PATRONATO_MIGRATOR_INCLUDES_PATH . 'Admin/Views/log-viewer.php';
     }
 
     /**
@@ -180,6 +218,90 @@ final class AdminMenu
         update_option(self::OPTION_IMAGES_PATH, $imagesPath, false);
 
         $this->redirectToConfig('saved');
+    }
+
+    /**
+     * Genera el CSV del log via MigrationRepository y lo entrega como descarga.
+     */
+    public function handleExportLog(): void
+    {
+        if (!current_user_can(self::REQUIRED_CAP)) {
+            wp_die(esc_html__('Acceso denegado.', 'patronato-migrator'), '', ['response' => 403]);
+        }
+
+        check_admin_referer('pm_export_log', '_wpnonce');
+
+        $module = sanitize_key((string) ($_GET['module'] ?? ''));
+        if ($module !== '' && !in_array($module, MigrationRepository::MODULES, true)) {
+            wp_die(esc_html__('Modulo invalido.', 'patronato-migrator'), '', ['response' => 400]);
+        }
+
+        $repository = new MigrationRepository();
+
+        try {
+            $path = $repository->exportCsv($module);
+        } catch (Throwable $e) {
+            wp_die(esc_html($e->getMessage()), '', ['response' => 500]);
+        }
+
+        $this->streamFile($path, 'text/csv', basename($path), true);
+    }
+
+    /**
+     * Sirve los archivos generados por RedirectMigrator (htaccess o sql).
+     */
+    public function handleDownloadRedirect(): void
+    {
+        if (!current_user_can(self::REQUIRED_CAP)) {
+            wp_die(esc_html__('Acceso denegado.', 'patronato-migrator'), '', ['response' => 403]);
+        }
+
+        check_admin_referer('pm_download_redirect', '_wpnonce');
+
+        $kind = sanitize_key((string) ($_GET['file'] ?? ''));
+        if (!in_array($kind, ['htaccess', 'sql'], true)) {
+            wp_die(esc_html__('Archivo invalido.', 'patronato-migrator'), '', ['response' => 400]);
+        }
+
+        $upload = wp_upload_dir();
+        if (!empty($upload['error'])) {
+            wp_die(esc_html((string) $upload['error']), '', ['response' => 500]);
+        }
+
+        $filename = $kind === 'htaccess' ? RedirectMigrator::FILE_HTACCESS : RedirectMigrator::FILE_SQL;
+        $path     = trailingslashit($upload['basedir']) . 'patronato-migrator/' . $filename;
+
+        if (!is_file($path)) {
+            wp_die(esc_html__('El archivo aun no se ha generado. Ejecuta el modulo Redirects primero.', 'patronato-migrator'), '', ['response' => 404]);
+        }
+
+        $mime = $kind === 'htaccess' ? 'text/plain' : 'application/sql';
+        $this->streamFile($path, $mime, $filename, false);
+    }
+
+    /**
+     * Envia un archivo al cliente como descarga y termina ejecucion.
+     * Si $deleteAfter es true, elimina el archivo tras el envio.
+     */
+    private function streamFile(string $path, string $mime, string $downloadName, bool $deleteAfter): void
+    {
+        if (!is_file($path) || !is_readable($path)) {
+            wp_die(esc_html__('Archivo no disponible.', 'patronato-migrator'), '', ['response' => 404]);
+        }
+
+        nocache_headers();
+        header('Content-Type: ' . $mime . '; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $downloadName . '"');
+        header('Content-Length: ' . (string) filesize($path));
+        header('X-Content-Type-Options: nosniff');
+
+        readfile($path);
+
+        if ($deleteAfter) {
+            @unlink($path);
+        }
+
+        exit;
     }
 
     /**

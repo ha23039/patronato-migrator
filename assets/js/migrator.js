@@ -18,6 +18,7 @@
 
 		initConnectionTest(config);
 		initModuleControllers(config);
+		initLogViewer(config);
 	});
 
 	/* ---------------------------------------------------------------------
@@ -434,5 +435,241 @@
 		return fallback;
 	}
 
-	// Vista de log y exportacion CSV: pendiente Sprint 7
+	/* ---------------------------------------------------------------------
+	 * Bloque 3 - Visor de log con filtros, paginacion y exportacion (Sprint 7)
+	 * --------------------------------------------------------------------- */
+
+	/**
+	 * Inicializa el visor de log si la pagina actual lo contiene. La funcion
+	 * es defensiva: si no existe la tabla #pm-log-table, se sale sin tocar
+	 * nada para no interferir con el dashboard u otras pantallas.
+	 *
+	 * @param {object} config Configuracion inyectada por wp_localize_script.
+	 */
+	function initLogViewer(config) {
+		var $table = $('#pm-log-table');
+		if (!$table.length) {
+			return;
+		}
+
+		var $tbody       = $table.find('tbody[data-pm-role="log-rows"]');
+		var $moduleSel   = $('#pm-log-module');
+		var $statusSel   = $('#pm-log-status');
+		var $applyBtn    = $('#pm-log-apply');
+		var $loadMoreBtn = $('#pm-log-load-more');
+		var $statusText  = $('#pm-log-status-text');
+		var $exportLink  = $('[data-pm-export-link]');
+
+		// Estado interno del visor. No se expone al ambito global.
+		var state = {
+			module:      '',
+			status:      '',
+			offset:      0,
+			limit:       50,
+			totalLoaded: 0,
+			total:       0,
+			loading:     false
+		};
+
+		var exportBaseUrl = $exportLink.length ? String($exportLink.data('pm-export-base') || $exportLink.attr('href') || '') : '';
+
+		// Carga inicial sin filtros.
+		loadLog(true);
+
+		$applyBtn.on('click', function (event) {
+			event.preventDefault();
+			state.module = String($moduleSel.val() || '');
+			state.status = String($statusSel.val() || '');
+			loadLog(true);
+		});
+
+		$loadMoreBtn.on('click', function (event) {
+			event.preventDefault();
+			loadLog(false);
+		});
+
+		$moduleSel.on('change', function () {
+			updateExportLink(String($moduleSel.val() || ''));
+		});
+
+		// Sincroniza el href del enlace de exportacion al cambiar el modulo.
+		// Si el valor esta vacio se elimina el parametro module.
+		function updateExportLink(moduleSlug) {
+			if (!$exportLink.length || exportBaseUrl === '') {
+				return;
+			}
+
+			var nextHref = exportBaseUrl;
+			if (moduleSlug !== '') {
+				var separator = (nextHref.indexOf('?') === -1) ? '?' : '&';
+				nextHref = nextHref + separator + 'module=' + encodeURIComponent(moduleSlug);
+			}
+
+			$exportLink.attr('href', nextHref);
+		}
+
+		/**
+		 * Despacha la peticion AJAX al endpoint pm_log_fetch.
+		 *
+		 * @param {boolean} reset Si true, vacia la tabla y reinicia offset.
+		 */
+		function loadLog(reset) {
+			if (state.loading) {
+				return;
+			}
+
+			if (reset) {
+				state.offset      = 0;
+				state.totalLoaded = 0;
+				$tbody.empty();
+				$loadMoreBtn.prop('hidden', true).prop('disabled', true);
+				setStatusText(getString('log_loading', 'Cargando...'), false);
+			} else {
+				$loadMoreBtn.prop('disabled', true);
+			}
+
+			state.loading = true;
+
+			var payload = {
+				action: 'pm_log_fetch',
+				nonce:  config.nonce,
+				module: state.module,
+				status: state.status,
+				limit:  state.limit,
+				offset: state.offset
+			};
+
+			$.post(config.ajaxUrl, payload)
+				.done(function (response) {
+					handleLogResponse(response);
+				})
+				.fail(function (jqXHR, textStatus) {
+					var detail = (typeof textStatus === 'string' && textStatus.length > 0) ? ' (' + textStatus + ')' : '';
+					setStatusText(getString('log_network_error', 'Error de red al cargar el log.') + detail, true);
+				})
+				.always(function () {
+					state.loading = false;
+					$loadMoreBtn.prop('disabled', false);
+				});
+		}
+
+		function handleLogResponse(response) {
+			if (!response || typeof response !== 'object' || response.success !== true) {
+				var errMsg = getString('log_server_error', 'Error del servidor al cargar el log.');
+				if (response && response.data && typeof response.data.message === 'string' && response.data.message.length > 0) {
+					errMsg = response.data.message;
+				}
+				setStatusText(errMsg, true);
+				return;
+			}
+
+			var data  = (response.data && typeof response.data === 'object') ? response.data : {};
+			var rows  = Array.isArray(data.rows) ? data.rows : [];
+			var total = numberOr(data.total, 0);
+			var limit = numberOr(data.limit, state.limit);
+
+			renderRows(rows);
+
+			state.total        = total;
+			state.totalLoaded += rows.length;
+			state.offset      += rows.length;
+			state.limit        = limit > 0 ? limit : state.limit;
+
+			updateFooter();
+		}
+
+		function renderRows(rows) {
+			if (rows.length === 0 && state.totalLoaded === 0) {
+				var $emptyRow = $('<tr></tr>').addClass('pm-row-empty');
+				$('<td></td>')
+					.attr('colspan', 7)
+					.text(getString('log_empty', 'No hay entradas que coincidan con los filtros.'))
+					.appendTo($emptyRow);
+				$tbody.append($emptyRow);
+				return;
+			}
+
+			for (var i = 0; i < rows.length; i++) {
+				$tbody.append(buildRow(rows[i]));
+			}
+		}
+
+		function buildRow(row) {
+			var statusKey = (row && typeof row.status === 'string') ? row.status : '';
+			var safeStatus = (statusKey === 'success' || statusKey === 'error' || statusKey === 'warning' || statusKey === 'skipped')
+				? statusKey
+				: 'info';
+
+			// Construccion via DOM API y .text() para evitar inyeccion XSS;
+			// jQuery escapa por nosotros al usar .text() en cada celda.
+			var $tr = $('<tr></tr>').addClass('pm-row-status-' + safeStatus);
+
+			$tr.append($('<td></td>').addClass('pm-cell-id').text(safeString(row && row.id)));
+			$tr.append($('<td></td>').addClass('pm-cell-date').text(safeString(row && row.created_at)));
+			$tr.append($('<td></td>').addClass('pm-cell-module').text(safeString(row && row.module)));
+			$tr.append($('<td></td>').addClass('pm-cell-status').text(safeString(statusKey)));
+			$tr.append($('<td></td>').addClass('pm-cell-joomla').text(safeString(row && row.joomla_id)));
+			$tr.append($('<td></td>').addClass('pm-cell-wp').text(safeString(row && row.wp_id)));
+
+			var message = (row && typeof row.message === 'string') ? row.message : '';
+			$tr.append(
+				$('<td></td>')
+					.addClass('pm-cell-message')
+					.attr('title', message)
+					.text(message)
+			);
+
+			return $tr;
+		}
+
+		function updateFooter() {
+			var template = getString('log_count', '%1$s de %2$s entradas');
+			var text = template
+				.replace('%1$s', String(state.totalLoaded))
+				.replace('%2$s', String(state.total));
+			setStatusText(text, false);
+
+			if (state.totalLoaded < state.total) {
+				$loadMoreBtn.prop('hidden', false);
+			} else {
+				$loadMoreBtn.prop('hidden', true);
+			}
+		}
+
+		function setStatusText(text, isError) {
+			$statusText.text(String(text));
+			if (isError) {
+				$statusText.addClass('pm-status-error');
+			} else {
+				$statusText.removeClass('pm-status-error');
+			}
+		}
+
+		function safeString(value) {
+			if (value === null || typeof value === 'undefined') {
+				return '';
+			}
+			return String(value);
+		}
+	}
+
+	/**
+	 * Escapa los caracteres reservados de HTML. Se mantiene disponible aunque
+	 * el visor de log construye el DOM con jQuery.text() para una segunda capa
+	 * de defensa cuando se necesite inyectar markup.
+	 *
+	 * @param {string} str Texto a escapar.
+	 * @return {string}    Texto seguro para insertar como innerHTML.
+	 */
+	function escapeHtml(str) {
+		if (str === null || typeof str === 'undefined') {
+			return '';
+		}
+		return String(str)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
+	}
 })(jQuery);
