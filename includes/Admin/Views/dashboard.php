@@ -66,9 +66,9 @@ $pm_modules = array(
 	array(
 		'module'         => 'orders',
 		'label'          => __( 'Pedidos', 'patronato-migrator' ),
-		'description'    => __( '35,497 pedidos historicos', 'patronato-migrator' ),
-		'enabled'        => false,
-		'pending_sprint' => __( 'Sprint 6', 'patronato-migrator' ),
+		'description'    => __( '35,497 pedidos historicos en lotes de 50', 'patronato-migrator' ),
+		'enabled'        => true,
+		'pending_sprint' => null,
 	),
 	array(
 		'module'         => 'redirects',
